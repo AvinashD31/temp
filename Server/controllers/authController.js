@@ -40,54 +40,60 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
+    console.log('Login request received:', req.body);
+    
     const { email, password } = req.body;
     
-    // Find user and explicitly select the role field
-    const user = await User.findOne({ email }).select('+role');
-    
-    console.log('Found user:', user); // Debug log
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
-    // Create token
     const token = jwt.sign(
-      { 
-        userId: user._id,
-        role: user.role // Include role in token
-      },
+      { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    // Send response with complete user data
-    res.json({
+    return res.status(200).json({
+      success: true,
       token,
       user: {
         id: user._id,
-        name: user.name,
         email: user.email,
-        role: user.role, // Explicitly include role
+        name: user.name,
+        role: user.role,
+        mobile: user.mobile
       }
     });
-
-    console.log('Login response:', { // Debug log
-      userId: user._id,
-      role: user.role,
-      name: user.name,
-      email: user.email
-    });
-
+    
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
