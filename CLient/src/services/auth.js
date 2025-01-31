@@ -92,4 +92,9 @@ export const getAuthenticatedUser = async () => {
     console.error('Get user error:', error);
     throw error;
   }
-}; 
+};
+
+// Missing token refresh mechanism
+// Missing token expiration handling
+// No CSRF protection
+// No secure cookie usage 

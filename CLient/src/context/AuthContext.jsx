@@ -35,32 +35,22 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // First try to get existing userData from localStorage
-      const existingUserData = localStorage.getItem('userData');
-      const parsedExistingData = existingUserData ? JSON.parse(existingUserData) : null;
-
-      // Decode the JWT token to get user data including role
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      console.log('Decoded token:', decodedToken);
-
-      // Merge existing data with token data, preferring existing data for certain fields
-      const userData = {
-        id: decodedToken.id || decodedToken.sub,
-        email: decodedToken.email,
-        name: parsedExistingData?.name || decodedToken.name, // Preserve existing name
-        role: decodedToken.role,
-        mobile: parsedExistingData?.mobile || decodedToken.mobile, // Preserve existing mobile
-        // Add other non-sensitive fields as needed
-      };
-
-      console.log('User data from token:', userData);
+      // Instead of decoding token client-side, validate with backend
+      const response = await fetch('/api/auth/validate', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
+      if (!response.ok) {
+        throw new Error('Token invalid');
+      }
+
+      const userData = await response.json();
       setUser(userData);
-      localStorage.setItem('userData', JSON.stringify(userData));
       setLoading(false);
     } catch (error) {
-      console.error('Auth check failed:', error);
-      setUser(null);
+      logout(); // Clear invalid session
       setLoading(false);
     }
   };
@@ -75,46 +65,36 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      console.log('Starting login process...');
+      console.log('Attempting login with:', { email }); // Don't log password
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include' // Important for CORS
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
+      console.log('Server response:', {
+        status: response.status,
+        ok: response.ok,
+        data: data
+      });
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || data.details || 'Login failed');
       }
 
-      // Store sensitive data in sessionStorage
-      if (data.token) {
-        sessionStorage.setItem('authToken', data.token);
+      if (data.token && data.user) {
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return data;
+      } else {
+        throw new Error('Invalid response from server');
       }
-      if (data.razorPayId) {
-        sessionStorage.setItem('razorPayId', data.razorPayId);
-      }
-
-      // Store non-sensitive user data in localStorage
-      const normalizedUser = {
-        id: data.user._id || data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        role: data.user.role || 'user',
-        mobile: data.user.mobile,
-        // Add other non-sensitive fields as needed
-      };
-      
-      localStorage.setItem('userData', JSON.stringify(normalizedUser));
-      setUser(normalizedUser);
-      setIsAuthenticated(true);
-      setIsAdmin(normalizedUser.role === 'admin');
-      
-      return { token: data.token, user: normalizedUser };
     } catch (error) {
       console.error('Login error:', error);
       throw error;
