@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/api': {
-        target: import.meta.env.VITE_API_URL, // Replace with your backend URL
+        target: https://tempfortest-frontend.onrender.com, // Replace with your backend URL
         changeOrigin: true,
         secure: false,
       },
