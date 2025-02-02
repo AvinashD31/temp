@@ -31,7 +31,7 @@ export default function AddressSelection() {
 
       try {
         const token = sessionStorage.getItem('authToken');
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const baseUrl = import.meta.env.VITE_API_URL ;
         
         // Always fetch fresh address data from the API
         const response = await fetch(`${baseUrl}/api/users/${user.id}`, {
@@ -109,7 +109,7 @@ export default function AddressSelection() {
       const updatedAddresses = [...currentAddresses, newAddressData];
       console.log('Updating with addresses:', updatedAddresses);
 
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_URL;
       const apiUrl = `${baseUrl}/api/users/${userId}/address`;
       
       const response = await fetch(apiUrl, {

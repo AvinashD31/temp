@@ -18,7 +18,7 @@ const OrdersList = () => {
       setLoading(true);
       setError(null);
       
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_URL ;
       const response = await fetch(`${baseUrl}/api/admin/orders`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
@@ -48,7 +48,7 @@ const OrdersList = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/admin/orders/${orderId}`, {
         method: 'PATCH',
         headers: {

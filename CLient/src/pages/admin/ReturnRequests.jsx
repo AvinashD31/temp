@@ -13,7 +13,7 @@ const ReturnRequests = () => {
   const fetchReturns = async () => {
     try {
       setLoading(true);
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/admin/returns?status=${filter}`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
@@ -37,7 +37,7 @@ const ReturnRequests = () => {
 
   const handleReturnAction = async (returnId, action) => {
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/admin/returns/${returnId}`, {
         method: 'PATCH',
         headers: {
